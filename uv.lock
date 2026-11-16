@@ -1,0 +1,23 @@
+version = 1
+revision = 3
+requires-python = ">=3.14"
+
+[[package]]
+name = "game2dboard"
+version = "0.8"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/de/913913e9fac832750904428c5eecb99ffe29278d003a9fe76e8277998c44/game2dboard-0.8.tar.gz", hash = "sha256:b634168f340774e640698b739462e5d96fcb18a7f708a9171bae7fc10a7acd3d", size = 9203, upload-time = "2020-06-03T14:30:13.142Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1f/40/afd766b3fcddeabd45d1e2e163dd51f86be09537770c2e4738eab8ad001f/game2dboard-0.8-py3-none-any.whl", hash = "sha256:3a4cf992353addc0afedb29f6427494d756cb48028cb237d692677f6c3972dff", size = 14073, upload-time = "2020-06-03T14:30:11.642Z" },
+]
+
+[[package]]
+name = "pacman"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "game2dboard" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "game2dboard", specifier = "==0.8" }]
