@@ -14,7 +14,6 @@ class Render():
         self.board.cell_color = "black"
 
     def draw(self):
-        """Full redraw: maze first, then ghosts, then Pac-Man on top."""
         for r in range(self.rows):
             for c in range(self.cols):
                 self.board[r][c] = self.IMAGES.get(self.maze.grid[r][c])
@@ -27,7 +26,6 @@ class Render():
         self.board[r][c] = "pacman"
 
     def draw_cell(self, pos):
-        """Redraw one cell: Pac-Man or a ghost if present, else the maze tile."""
         r, c = pos
         if pos == self.maze.pacman.pos:
             self.board[r][c] = "pacman"
