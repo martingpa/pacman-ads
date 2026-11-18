@@ -2,15 +2,18 @@ from constants import MAZE, DIRS, TICK_MS
 from maze import Maze
 from render import Render
 from pathfinding import bfs
+import random
+
 
 class Game():
-    def __init__(self, maze, render):
+    def __init__(self, maze, render, auto = False):
         self.maze = maze
         self.render = render
         self.pacman = maze.pacman
         self.ghosts = maze.ghosts
         self.score = 0
         self.ticks = 0
+        self.auto = auto
 
         render.board.on_key_press = self.on_key
         render.board.on_timer = self.tick
@@ -65,22 +68,47 @@ class Game():
     
     def pacman_move(self):
         p = self.pacman
-        if p.next_direction and self.can_move(p.next_direction):
-            p.direction = p.next_direction
-        if p.direction and self.can_move(p.direction):
+        if self.auto == False:
+            if p.next_direction and self.can_move(p.next_direction):
+                p.direction = p.next_direction
+            if p.direction and self.can_move(p.direction):
+                old = p.pos
+                p.pos = self.next_pos(old, p.direction)
+                self.eat()
+                for ghost in self.ghosts:
+                    self.check_collision(ghost)
+                self.render.draw_cell(old)
+                self.render.draw_cell(p.pos)
+        elif self.auto == True:
+            graph = self.maze.build_weighted_graph()
+
             old = p.pos
-            p.pos = self.next_pos(old, p.direction)
+            options = graph[old]          
+
+            safe = []
+            for neighbor, weight in options:
+                if weight >= 3:
+                    safe.append(neighbor)
+            if safe:
+                new = random.choice(safe)
+            else:
+                new, best_weight = options[0]
+                for neighbor, weight in options:
+                    if weight > best_weight:
+                        new, best_weight = neighbor, weight
+
+            p.pos = new
             self.eat()
             for ghost in self.ghosts:
                 self.check_collision(ghost)
             self.render.draw_cell(old)
-            self.render.draw_cell(p.pos)
-
+            self.render.draw_cell(p.pos)            
+                       
 
     def ghost_move(self, ghost):
-        gp = ghost.pos #Ghost current position
-        pp = self.pacman.pos #Pacman Current position
-        graph = self.maze.ghost_graph # Ghost Graph
+        gp = ghost.pos
+        pp = self.pacman.pos
+        graph = self.maze.ghost_graph 
 
         old = gp
         new = bfs(graph, gp, pp)  
@@ -116,4 +144,4 @@ class Game():
 if __name__ == "__main__":
     from render import Render
     maze = Maze(MAZE)
-    Game(maze, Render(maze)).run()
+    Game(maze, Render(maze), auto = False).run()

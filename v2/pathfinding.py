@@ -1,3 +1,4 @@
+import heapq
 from collections import deque
 
 def bfs(graph, origin, target):
@@ -48,4 +49,4 @@ def bfs_distance(graph, origin, target):
     while parent[steps[-1]] != origin:
         steps.append(parent[steps[-1]])
     
-    return len(steps)  
+    return len(steps)        

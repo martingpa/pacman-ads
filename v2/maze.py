@@ -1,7 +1,6 @@
 from constants import MAZE, GHOSTS
 from entities import PacMan, Ghost
 from pathfinding import bfs, bfs_distance
-import statistics
 
 class Maze():
     def __init__(self, maze):
@@ -74,8 +73,8 @@ class Maze():
                 for ghost in self.ghosts:
                     distances.append(bfs_distance(self.pacman_graph, neighbor, ghost.pos))
 
-                mean_distance = statistics.mean(distances)
+                min_distance = min(distances)
 
-                graph[key].append((neighbor, mean_distance)) #((a,b), mean_distance from ghosts)
+                graph[key].append((neighbor, min_distance)) #((a,b), min_distance from ghosts)
 
         return graph
