@@ -62,12 +62,12 @@ def bfs(graph, origin, target):
     if target not in parent:
         return origin
 
-    # walk back from the target until the cell right after the origin
-    steps = [target]
-    while parent[steps[-1]] != origin:
-        steps.append(parent[steps[-1]])
+    # walk back from the target until the parent is the origin
+    step = target
+    while parent[step] != origin:
+        step = parent[step]
 
-    return steps[-1]        #Next position to move to 
+    return step        #Next position to move to
 
 def dijkstra(graph, start):
     # create a priority queue
