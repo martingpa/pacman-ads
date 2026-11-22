@@ -25,4 +25,5 @@ MAZE = [
 GHOSTS = ["blinky", "pinky", "inky"]
 DIRS = {"Up": (-1, 0), "Down": (1, 0), "Left": (0, -1), "Right": (0, 1)}
 TICK_MS = 200
+GHOST_COST = 20     # cost of a cell with a ghost on it (a normal cell costs 1). With 5 the ghosts still queued in corridors
 

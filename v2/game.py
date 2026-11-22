@@ -1,7 +1,7 @@
 from constants import MAZE, DIRS, TICK_MS
 from maze import Maze
 from render import Render
-from pathfinding import bfs
+from pathfinding import bfs, dijkstra
 import random
 
 
@@ -78,35 +78,45 @@ class Game():
             self.render.draw_cell(old)
             self.render.draw_cell(p.pos)
 
-    def ghost_move(self, ghost):
-        gp = ghost.pos
-        pp = self.pacman.pos
-        graph = self.maze.ghost_graph 
-
-        old = gp
-        new = bfs(graph, gp, pp)  
+    def ghost_move(self, ghost, distances):
+        old = ghost.pos
+        if ghost.name == "blinky":
+            # Blinky: shortest path to Pac-Man with BFS (every step costs the same)
+            new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
+        else:
+            # Pinky and Inky: step to the neighbor with the smallest Dijkstra distance to Pac-Man
+            new = self.closest_neighbor(old, distances)
         if self.occupied(new):
             return
         ghost.pos = new
         self.check_collision(ghost)
         self.render.draw_cell(old)
         self.render.draw_cell(ghost.pos)
-        
-    
+
+    def closest_neighbor(self, pos, distances):
+        neighbors = self.maze.ghost_graph[pos]
+        best = neighbors[0]
+        for neighbor in neighbors:
+            if distances[neighbor] < distances[best]:
+                best = neighbor
+        return best
+
     def tick(self):
         self.ticks += 1
         
         self.pacman_move()
         
         if self.ticks % 2 == 0: 
+            # one Dijkstra run from Pac-Man per tick, shared by Pinky and Inky
+            distances = dijkstra(self.maze.build_weighted_graph(), self.pacman.pos)
             if self.ticks > 40:
                 for ghost in self.ghosts:
-                    self.ghost_move(ghost)
+                    self.ghost_move(ghost, distances)
             elif self.ticks > 20 and (self.ticks % 2 == 0):
-                self.ghost_move(self.ghosts[0])
-                self.ghost_move(self.ghosts[1])
+                self.ghost_move(self.ghosts[0], distances)
+                self.ghost_move(self.ghosts[1], distances)
             elif self.ticks > 2 and (self.ticks % 2 == 0):
-                self.ghost_move(self.ghosts[0])
+                self.ghost_move(self.ghosts[0], distances)
 
 
     def run(self):
