@@ -1,19 +1,15 @@
-class Entity(): 
+class PacMan():
     def __init__(self, pos):
         self.pos = pos
         self.start = pos
         self.direction = None
-        self.next_direction = None
+        self.next_direction = None      # direction buffer: the last key pressed
+        self.lives = 3
 
     def reset(self):
-        self.pos = self.start 
+        self.pos = self.start
         self.direction = None
         self.next_direction = None
-
-class PacMan(Entity):
-    def __init__(self, pos):
-        super().__init__(pos)
-        self.lives = 3
 
     def image(self):
         # face the way Pac-Man is moving (pacman_up.png, pacman_left.png, ...)
@@ -23,15 +19,16 @@ class PacMan(Entity):
             return "pacman_" + self.direction.lower()
 
 
-class Ghost(Entity):
+class Ghost():
     def __init__(self, pos, name):
-        super().__init__(pos)
-        self.name = name 
+        self.pos = pos
+        self.start = pos
+        self.name = name
         self.frightened = False
         self.prev = None        # previous cell, so a frightened ghost doesn't turn straight back
 
     def reset(self):
-        super().reset()
+        self.pos = self.start
         self.prev = None
         self.frightened = False
 
@@ -40,4 +37,3 @@ class Ghost(Entity):
             return "frightened"
         else:
             return self.name
-    

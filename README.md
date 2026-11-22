@@ -2,11 +2,9 @@
 
 ## 1. Object-Oriented Structure
 
-The program is structured in 8 classes and two functions, distributed across 5 files:
+The program is structured in 7 classes and two functions, distributed across 5 files:
 
-- `Entity` in **entities.py**
-    - `PacMan` (inherits from `Entity`) in **entities.py**
-    - `Ghost` (inherits from `Entity`) in **entities.py**
+- `PacMan` and `Ghost` in **entities.py**
 - `Maze` in **maze.py**
 - `Game` in **game.py**
 - `Render` in **render.py**
@@ -22,14 +20,13 @@ There are two entity types within the game:
 - PacMan
 - The Ghosts
 
-Each is represented by its own class, `PacMan` and `Ghost`, and both inherit from the `Entity` class.
+Each is represented by its own plain class, `PacMan` and `Ghost`, written the same way as the classes from our notebooks (like `Node` and `QueueLinkedList`).
 
-- `Entity` has four attributes: the current position `pos`, the start position `start`, the current direction `direction` and the direction buffer `next_direction`. Its one method, `reset()`, sets the current position back to the start position and clears both directions.
+- `PacMan` has the current position `pos`, the start position `start`, the current direction `direction`, the direction buffer `next_direction` and a `lives` counter. `reset()` sets the position back to the start and clears both directions. `image()` returns the sprite facing his current direction (`pacman_up`, `pacman_left`, ...), or `pacman` before he starts moving.
 
-    > **Note:** The direction buffer lets the game check that a direction is valid before the entity actually takes it.
+    > **Note:** The direction buffer lets the game check that a direction is valid before PacMan actually takes it.
 
-    - `Ghost` adds three attributes: its identifier `name`, its state `frightened` and its previous cell `prev` (so a frightened ghost doesn't turn straight back). Its `reset()` calls `super().reset()` and also clears `prev` and `frightened`. `image()` returns `"frightened"` or the ghost's name.
-    - `PacMan` adds a `lives` counter. `image()` returns the sprite facing his current direction (`pacman_up`, `pacman_left`, ...), or `pacman` before he starts moving.
+- `Ghost` has `pos`, `start`, its identifier `name`, its state `frightened` and its previous cell `prev` (so a frightened ghost doesn't turn straight back). `reset()` sets the position back to the start and clears `prev` and `frightened`. `image()` returns `"frightened"` or the ghost's name.
 
 ### 1.2. Maze
 
