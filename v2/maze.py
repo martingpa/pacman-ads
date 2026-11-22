@@ -1,4 +1,4 @@
-from constants import MAZE, GHOSTS
+from constants import MAZE, GHOSTS, GHOST_COST
 from entities import PacMan, Ghost
 
 class Maze():
@@ -53,5 +53,24 @@ class Maze():
 
         for key in graph:
             graph[key].extend(self.neighbors(key, ghost))
+
+        return graph
+
+    def build_weighted_graph(self):
+        graph = {}
+
+        # cells with a ghost on them cost more, so Dijkstra goes around the other ghosts
+        ghost_cells = set()
+        for ghost in self.ghosts:
+            ghost_cells.add(ghost.pos)
+
+        for key in self.ghost_graph:
+            graph[key] = []
+            for neighbor in self.ghost_graph[key]:
+                if neighbor in ghost_cells:
+                    cost = GHOST_COST
+                else:
+                    cost = 1
+                graph[key].append((neighbor, cost))     #(neighbor, cost of stepping onto it)
 
         return graph
