@@ -66,6 +66,20 @@ def bfs(graph, origin, target):
 
     return step        #Next position to move to
 
+# Depth-first search (graphs session), recursive
+def dfs(graph, start, target, visited):
+    if start == target:
+        return True
+
+    visited.add(start)
+    children = graph[start]
+    for c in children:
+        if c not in visited:
+            if dfs(graph, c, target, visited) == True:
+                return True
+    return False
+
+
 # Min heap (session 20): the priority queue for Dijkstra
 class MinHeap():
     def __init__(self, size):

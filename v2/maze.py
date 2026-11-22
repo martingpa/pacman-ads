@@ -1,5 +1,6 @@
 from constants import GHOSTS, GHOST_COST
 from entities import PacMan, Ghost
+from pathfinding import dfs
 
 class Maze():
     def __init__(self, maze):
@@ -14,6 +15,16 @@ class Maze():
         self.parse()
         self.pacman_graph = self.build_graph(False)
         self.ghost_graph = self.build_graph(True)
+
+        # check with DFS (recursion) that Pac-Man can reach every pellet
+        visited = set()
+        dfs(self.pacman_graph, self.pacman.start, None, visited)   # no target: visits every reachable cell
+        for pellet in self.pellets:
+            if pellet not in visited:
+                raise ValueError(f"Pellet at {pellet} can't be reached")
+        for pellet in self.power_pellets:
+            if pellet not in visited:
+                raise ValueError(f"Power pellet at {pellet} can't be reached")
 
     def parse(self):
         for i in range(self.rows):
