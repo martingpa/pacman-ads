@@ -87,12 +87,12 @@ The `Game` class mixes functional logic and game logic.
     1. Move PacMan. If he walked into a ghost, stop here.
     2. If both pellet sets are empty, stop the timer and display `"You win! Score: X"`.
     3. Count down the power pellet with `update_frightened()`.
-    4. Every second tick, move the released ghosts. The middle ghost (Blinky) sits right below the door, so he is released first (after tick 2), then Pinky (after tick 20), then Inky (after tick 40). `dijkstra()` runs once from PacMan's position and the distances are shared by Pinky and Inky. If a ghost catches PacMan, the tick stops so the other ghosts don't move off their reset positions.
+    4. Every second tick, move the released ghosts. The middle ghost (Blinky) sits right below the door, so he is released first (after tick 2), then Pinky (after tick 20), then Inky (after tick 40). If a ghost catches PacMan, the tick stops so the other ghosts don't move off their reset positions.
 - **`pacman_move()`** first checks that `next_direction` is set (which only happens once the user starts playing) and that the direction is valid. If both hold, that direction becomes the current direction; otherwise the direction is left unchanged. A second block then updates PacMan's position and the eaten pellets, renders the new positions, and checks for collisions. It returns `True` if PacMan died.
 - **`ghost_move()`** moves a ghost one step:
     - Frightened ghosts take a random neighbor (`random_step()`), but not straight back to `prev` if there is another way.
     - Blinky takes the next step of the `bfs()` path towards PacMan.
-    - Pinky and Inky take the neighbor with the smallest Dijkstra distance (`closest_neighbor()`).
+    - Pinky and Inky run `dijkstra()` from PacMan's position right before their own step, so the weighted graph uses where the other ghosts are now (Blinky has already moved this tick). Then they take the neighbor with the smallest distance (`closest_neighbor()`). That's at most 2 Dijkstra runs per tick, each well under a millisecond.
 
     Ghosts can pass through each other. It calls `check_collision()` to detect a catch, and returns `True` if PacMan died.
 - **`check_collision()`** checks whether a ghost and PacMan are on the same cell. A frightened ghost is eaten (200 points, back to the ghost house); otherwise it calls `lose_life()` and returns `True`.

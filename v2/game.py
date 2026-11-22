@@ -107,7 +107,7 @@ class Game():
                     return True
         return False
 
-    def ghost_move(self, ghost, distances):
+    def ghost_move(self, ghost):
         # returns True if Pac-Man died
         old = ghost.pos
         if ghost.frightened:
@@ -117,7 +117,9 @@ class Game():
             # Blinky: shortest path to Pac-Man with BFS (every step costs the same)
             new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
         else:
-            # Pinky and Inky: step to the neighbor with the smallest Dijkstra distance to Pac-Man
+            # Pinky and Inky: run Dijkstra from Pac-Man with the ghosts' current positions,
+            # then step to the neighbor with the smallest distance
+            distances = dijkstra(self.maze.build_weighted_graph(), self.pacman.pos)
             new = self.closest_neighbor(old, distances)
         ghost.prev = old
         ghost.pos = new
@@ -172,10 +174,8 @@ class Game():
             else:
                 released = []
 
-            # one Dijkstra run from Pac-Man per tick, shared by Pinky and Inky
-            distances = dijkstra(self.maze.build_weighted_graph(), self.pacman.pos)
             for ghost in released:
-                if self.ghost_move(ghost, distances):
+                if self.ghost_move(ghost):
                     return      # Pac-Man died: stop so the others don't move off their reset positions
 
 
