@@ -31,13 +31,13 @@ class Game():
     
         
     def eat(self):
-        r, c = self.pacman.pos
-        if self.maze.grid[r][c] == ".":
+        pos = self.pacman.pos
+        if pos in self.maze.pellets:
             self.score += 10
-            self.maze.grid[r][c] = " "
-        elif self.maze.grid[r][c] == "o":
+            self.maze.pellets.remove(pos)
+        elif pos in self.maze.power_pellets:
             self.score += 50
-            self.maze.grid[r][c] = " "
+            self.maze.power_pellets.remove(pos)
         self.render.set_title(f"Score: {self.score} Lives: {self.pacman.lives}")
     
     def occupied(self, pos):
