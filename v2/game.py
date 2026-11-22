@@ -40,6 +40,9 @@ class Game():
             self.score += 50
             self.maze.power_pellets.remove(pos)
             self.frighten()
+        self.update_title()
+
+    def update_title(self):
         self.render.set_title(f"Score: {self.score} Lives: {self.pacman.lives}")
 
     def frighten(self):
@@ -65,22 +68,28 @@ class Game():
             ghost.reset()               # back to the ghost house
             self.score += 200
             self.render.draw_cell(ghost.pos)
-            self.render.set_title(f"Score: {self.score} Lives: {self.pacman.lives}")
+            self.update_title()
             return False
         self.lose_life()
         return True
     
     def lose_life(self):
         self.pacman.lives -= 1
+
+        # no lives left: game over, don't start a new life
+        if self.pacman.lives == 0:
+            self.render.board.stop_timer()
+            self.render.set_title(f"Game Over! Score: {self.score}")
+            return
+
+        # start a new life: everyone back to their start cells
         self.ticks = 0
         self.frightened_ticks = 0
         self.pacman.reset()             # also clears direction and next_direction
         for ghost in self.ghosts:
             ghost.reset()               # also clears frightened
         self.render.draw()
-        if self.pacman.lives <= 0:
-            self.render.board.stop_timer()
-            self.render.set_title(f"Game Over! Score: {self.score}")
+        self.update_title()
     
     def pacman_move(self):
         # returns True if Pac-Man died
@@ -172,6 +181,7 @@ class Game():
 
     def run(self):
         self.render.draw()
+        self.update_title()
         self.render.board.start_timer(TICK_MS)
         self.render.show()
 
