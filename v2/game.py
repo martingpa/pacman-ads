@@ -117,23 +117,13 @@ class Game():
             # Blinky: shortest path to Pac-Man with BFS (every step costs the same)
             new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
         else:
-            # Pinky and Inky: run Dijkstra from Pac-Man with the ghosts' current positions,
-            # then step to the neighbor with the smallest distance
-            distances = dijkstra(self.maze.build_weighted_graph(), self.pacman.pos)
-            new = self.closest_neighbor(old, distances)
+            # Pinky and Inky: cheapest path to Pac-Man with Dijkstra (cells with a ghost cost more)
+            new = dijkstra(self.maze.build_weighted_graph(), old, self.pacman.pos)
         ghost.prev = old
         ghost.pos = new
         self.render.draw_cell(old)
         self.render.draw_cell(new)
         return self.check_collision(ghost)
-
-    def closest_neighbor(self, pos, distances):
-        neighbors = self.maze.ghost_graph[pos]
-        best = neighbors[0]
-        for neighbor in neighbors:
-            if distances[neighbor] < distances[best]:
-                best = neighbor
-        return best
 
     def random_step(self, ghost):
         # random neighbor, but not straight back if there is another way

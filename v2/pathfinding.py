@@ -1,6 +1,3 @@
-import heapq
-
-
 # Queue built on a linked list (session 13): enqueue and dequeue are both O(1)
 class Node():
     def __init__(self, value):
@@ -69,18 +66,97 @@ def bfs(graph, origin, target):
 
     return step        #Next position to move to
 
-def dijkstra(graph, start):
-    # create a priority queue
-    heap = []
+# Min heap (session 20): the priority queue for Dijkstra
+class MinHeap():
+    def __init__(self, size):
+        self.size = size
+        self.next_empty_slot = 0
+        self.data = [0] * size
+
+    def push(self, priority):
+        # insert priority at next empty position
+        if self.next_empty_slot == self.size:
+            print("Heap is full!")
+            return
+        self.data[self.next_empty_slot] = priority
+        self._bubble_up(self.next_empty_slot)
+        self.next_empty_slot += 1
+
+    def _swap(self, indexa, indexb):
+        temp = self.data[indexa]
+        self.data[indexa] = self.data[indexb]
+        self.data[indexb] = temp
+
+    def _bubble_up(self, index):
+        while True:
+            if index == 0:
+                # we're at root
+                break
+            parent_index = (index + 1) // 2 -1
+            parents_value = self.data[parent_index]
+            mispaced_value = self.data[index]
+            if mispaced_value < parents_value:
+                self._swap(index, parent_index)
+                index = parent_index
+            else:
+                break
+
+    def pop(self) -> int:
+        # get the root
+        if self.next_empty_slot == 0:
+            print("Empty heap!")
+            return None
+        value = self.data[0]
+        # replace it with the last
+        self.data[0] = self.data[self.next_empty_slot-1]
+        self.next_empty_slot -= 1
+        # bubble down
+        self._bubble_down(0)
+        return value
+
+    def _bubble_down(self, index):
+        while True:
+            if index >= self.next_empty_slot:
+                break
+            left_child_index = 2 * (index + 1) -1
+            right_child_index = left_child_index + 1
+            if left_child_index >= self.next_empty_slot:
+                # No children
+                break
+            elif right_child_index >= self.next_empty_slot:
+                # only left child exists
+                candidate_index = left_child_index
+            elif self.data[left_child_index] < self.data[right_child_index]:
+                # Both children exist, and left has lower number, hence higher priority
+                candidate_index = left_child_index
+            else:
+                candidate_index = right_child_index
+
+            if self.data[index] > self.data[candidate_index]:
+                self._swap(candidate_index, index)
+                index = candidate_index
+            else:
+                break
+
+
+def dijkstra(graph, start, target):
+    if start == target:
+        return start
+
+    # create a priority queue (our MinHeap: a cell is only pushed when its distance improves,
+    # at most once per neighbor, and each cell has at most 4 neighbors)
+    heap = MinHeap(4 * len(graph) + 1)
     # initialize the distances dictionary
     distances = {}
+    # create the parent dictionary (where we came from, like in bfs)
+    parent = {start: None}
     # initialize both with start
-    heapq.heappush(heap, (0, start))
+    heap.push((0, start))
     distances[start] = 0
     # while there are more nodes in priority queue
-    while len(heap) > 0:
+    while heap.next_empty_slot > 0:
         # pop from priority queue
-        d, node = heapq.heappop(heap)
+        d, node = heap.pop()
         # for each children:
         children = graph[node]
         for child, child_distance in children:
@@ -90,7 +166,18 @@ def dijkstra(graph, start):
             if child not in distances or total_child_dist < distances[child]:
                 # update the distance
                 distances[child] = total_child_dist
+                # remember where we came from
+                parent[child] = node
                 # push to the heap
-                heapq.heappush(heap, (total_child_dist, child))
-    # return distances
-    return distances
+                heap.push((total_child_dist, child))
+
+    # target not reachable: stay where we are
+    if target not in parent:
+        return start
+
+    # walk back from the target until the parent is the start
+    step = target
+    while parent[step] != start:
+        step = parent[step]
+
+    return step        #Next position to move to
