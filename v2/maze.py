@@ -1,6 +1,5 @@
-from constants import MAZE, GHOSTS
+from constants import GHOSTS, GHOST_COST
 from entities import PacMan, Ghost
-from pathfinding import bfs, bfs_distance
 
 class Maze():
     def __init__(self, maze):
@@ -9,6 +8,8 @@ class Maze():
         self.cols = len(self.grid[0])
         self.ghosts = []
         self.pacman = None
+        self.pellets = set()          # positions of the "." pellets
+        self.power_pellets = set()    # positions of the "o" power pellets
 
         self.parse()
         self.pacman_graph = self.build_graph(False)
@@ -24,10 +25,19 @@ class Maze():
                 elif self.grid[i][j] == "P":
                     self.grid[i][j] = " "
                     self.pacman = PacMan((i, j))
+                elif self.grid[i][j] == ".":
+                    self.grid[i][j] = " "
+                    self.pellets.add((i, j))
+                elif self.grid[i][j] == "o":
+                    self.grid[i][j] = " "
+                    self.power_pellets.add((i, j))
 
     def neighbors(self, pos, ghost):
 
-        blocked = "#" if ghost else "#-"
+        if ghost:
+            blocked = "#"           # ghosts can go through the door
+        else:
+            blocked = "#-"          # Pac-Man can't
 
         result = []
         directions = [(1,0), (-1, 0), (0, 1), (0, -1)]
@@ -43,38 +53,42 @@ class Maze():
 
 
     def build_graph(self, ghost):
+        # create the graph dictionary (adjacency list)
         graph = {}
 
-        blocked = "#" if ghost else "#-"
+        if ghost:
+            blocked = "#"
+        else:
+            blocked = "#-"
 
+        # add every cell we can walk on as a key with an empty list
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.grid[i][j] not in blocked:
                     graph[(i,j)] = []
 
+        # fill each list with the cell's walkable neighbors
         for key in graph:
             graph[key].extend(self.neighbors(key, ghost))
 
+        # return the graph
         return graph
-    
+
     def build_weighted_graph(self):
         graph = {}
 
-        blocked = "#-"
+        # cells with a ghost on them cost more, so Dijkstra goes around the other ghosts
+        ghost_cells = set()
+        for ghost in self.ghosts:
+            ghost_cells.add(ghost.pos)
 
-        for i in range(self.rows):
-            for j in range(self.cols):
-                if self.grid[i][j] not in blocked:
-                    graph[(i,j)] = []
-
-        for key in graph:
-            for neighbor in self.neighbors(key, False):
-                distances = []
-                for ghost in self.ghosts:
-                    distances.append(bfs_distance(self.pacman_graph, neighbor, ghost.pos))
-
-                min_distance = min(distances)
-
-                graph[key].append((neighbor, min_distance)) #((a,b), min_distance from ghosts)
+        for key in self.ghost_graph:
+            graph[key] = []
+            for neighbor in self.ghost_graph[key]:
+                if neighbor in ghost_cells:
+                    cost = GHOST_COST
+                else:
+                    cost = 1
+                graph[key].append((neighbor, cost))     #(neighbor, cost of stepping onto it)
 
         return graph
