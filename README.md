@@ -97,7 +97,8 @@ The `Game` class mixes functional logic and game logic.
     Ghosts can pass through each other. It calls `check_collision()` to detect a catch, and returns `True` if PacMan died.
 - **`check_collision()`** checks whether a ghost and PacMan are on the same cell. A frightened ghost is eaten (200 points, back to the ghost house); otherwise it calls `lose_life()` and returns `True`.
 - **`frighten()`** runs when PacMan eats a power pellet: every ghost becomes frightened for `FRIGHTENED_TICKS` (40) ticks. **`update_frightened()`** counts down and turns them back to normal.
-- **`lose_life()`** subtracts 1 from the `lives` counter, clears the frightened timer and resets every entity. When PacMan runs out of lives, it stops the timer and displays `"Game Over! Score: X"`.
+- **`lose_life()`** subtracts 1 from the `lives` counter. If it reaches 0, it stops the timer and displays `"Game Over! Score: X"` without starting a new life. Otherwise it clears the frightened timer, resets every entity and updates the title.
+- **`update_title()`** shows the score and lives in the window title. It runs at the start, after every move and after every death, so the lives counter is always current.
 - **`next_pos()`** takes a position and a direction and returns the position one cell further in that direction, wrapping around at the tunnels.
 - **`can_move()`** checks whether the next position in a given direction is among the traversable neighbors of PacMan's current position in `pacman_graph`.
 - **`eat()`** checks whether PacMan's new position is in `pellets` or `power_pellets` (O(1) set lookups). If so, it removes it from the set and adds its points to the score (10 or 50). A power pellet also calls `frighten()`.
