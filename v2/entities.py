@@ -7,6 +7,8 @@ class Entity():
 
     def reset(self):
         self.pos = self.start 
+        self.direction = None
+        self.next_direction = None
 
 class PacMan(Entity):
     def __init__(self, pos):
@@ -19,7 +21,12 @@ class Ghost(Entity):
         super().__init__(pos)
         self.name = name 
         self.frightened = False
+        self.prev = None        # previous cell, so a frightened ghost doesn't turn straight back
 
+    def reset(self):
+        super().reset()
+        self.prev = None
+        self.frightened = False
 
     @property
     def image(self):
