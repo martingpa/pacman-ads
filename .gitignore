@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# High scores (saved by the game)
+v2/scores.txt

@@ -2,6 +2,7 @@ from constants import MAZE, DIRS, TICK_MS, FRIGHTENED_TICKS
 from maze import Maze
 from render import Render
 from pathfinding import bfs, dijkstra
+from scores import save_score
 import random
 
 
@@ -42,6 +43,15 @@ class Game():
             self.frighten()
         self.update_title()
 
+    def end(self, message):
+        # stop the game, save the score and show where it landed on the leaderboard
+        self.render.board.stop_timer()
+        rank, best = save_score(self.score)
+        if rank is None:
+            self.render.set_title(f"{message} Score: {self.score} | Best: {best}")
+        else:
+            self.render.set_title(f"{message} Score: {self.score} | #{rank} on the leaderboard")
+
     def update_title(self):
         self.render.set_title(f"Score: {self.score} Lives: {self.pacman.lives}")
 
@@ -78,8 +88,7 @@ class Game():
 
         # no lives left: game over, don't start a new life
         if self.pacman.lives == 0:
-            self.render.board.stop_timer()
-            self.render.set_title(f"Game Over! Score: {self.score}")
+            self.end("Game Over!")
             return
 
         # start a new life: everyone back to their start cells
@@ -145,8 +154,7 @@ class Game():
 
         # 2. Win when every pellet is eaten
         if len(self.maze.pellets) == 0 and len(self.maze.power_pellets) == 0:
-            self.render.board.stop_timer()
-            self.render.set_title(f"You win! Score: {self.score}")
+            self.end("You win!")
             return
 
         # 3. Power pellet countdown
