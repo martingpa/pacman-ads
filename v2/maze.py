@@ -8,6 +8,8 @@ class Maze():
         self.cols = len(self.grid[0])
         self.ghosts = []
         self.pacman = None
+        self.pellets = set()          # positions of the "." pellets
+        self.power_pellets = set()    # positions of the "o" power pellets
 
         self.parse()
         self.pacman_graph = self.build_graph(False)
@@ -23,6 +25,12 @@ class Maze():
                 elif self.grid[i][j] == "P":
                     self.grid[i][j] = " "
                     self.pacman = PacMan((i, j))
+                elif self.grid[i][j] == ".":
+                    self.grid[i][j] = " "
+                    self.pellets.add((i, j))
+                elif self.grid[i][j] == "o":
+                    self.grid[i][j] = " "
+                    self.power_pellets.add((i, j))
 
     def neighbors(self, pos, ghost):
 
