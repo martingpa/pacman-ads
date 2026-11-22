@@ -21,7 +21,7 @@ class Render():
     def draw_cell(self, pos):
         r, c = pos
         if pos == self.maze.pacman.pos:
-            self.board[r][c] = "pacman"
+            self.board[r][c] = self.maze.pacman.image()
             return
         for ghost in self.maze.ghosts:
             if ghost.pos == pos:

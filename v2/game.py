@@ -57,12 +57,6 @@ class Game():
                     ghost.frightened = False
                     self.render.draw_cell(ghost.pos)
     
-    def occupied(self, pos):
-        for ghost in self.ghosts: 
-            if ghost.pos == pos:
-                return True
-        return False
-    
     def check_collision(self, ghost):
         # returns True if Pac-Man died
         if ghost.pos != self.pacman.pos:
@@ -116,8 +110,6 @@ class Game():
         else:
             # Pinky and Inky: step to the neighbor with the smallest Dijkstra distance to Pac-Man
             new = self.closest_neighbor(old, distances)
-        if self.occupied(new):
-            return False
         ghost.prev = old
         ghost.pos = new
         self.render.draw_cell(old)
@@ -159,8 +151,8 @@ class Game():
         # 3. Power pellet countdown
         self.update_frightened()
 
-        # 4. Ghosts move every second tick. ghosts[1] is the middle one, right below the door,
-        #    so it is released first (the others can't get out while it is in the way)
+        # 4. Ghosts move every second tick. ghosts[1] (Blinky) is the middle one, right below the door,
+        #    so he is released first
         if self.ticks % 2 == 0:
             if self.ticks > 40:
                 released = [self.ghosts[1], self.ghosts[0], self.ghosts[2]]

@@ -15,6 +15,13 @@ class PacMan(Entity):
         super().__init__(pos)
         self.lives = 3
 
+    def image(self):
+        # face the way Pac-Man is moving (pacman_up.png, pacman_left.png, ...)
+        if self.direction is None:
+            return "pacman"
+        else:
+            return "pacman_" + self.direction.lower()
+
 
 class Ghost(Entity):
     def __init__(self, pos, name):

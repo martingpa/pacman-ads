@@ -29,7 +29,7 @@ Each is represented by its own class, `PacMan` and `Ghost`, and both inherit fro
     > **Note:** The direction buffer lets the game check that a direction is valid before the entity actually takes it.
 
     - `Ghost` adds three attributes: its identifier `name`, its state `frightened` and its previous cell `prev` (so a frightened ghost doesn't turn straight back). Its `reset()` calls `super().reset()` and also clears `prev` and `frightened`. `image()` returns `"frightened"` or the ghost's name.
-    - `PacMan` adds a `lives` counter.
+    - `PacMan` adds a `lives` counter. `image()` returns the sprite facing his current direction (`pacman_up`, `pacman_left`, ...), or `pacman` before he starts moving.
 
 ### 1.2. Maze
 
@@ -70,7 +70,7 @@ Each is represented by its own class, `PacMan` and `Ghost`, and both inherit fro
 - `bfs()` (*breadth-first search*) returns the first step an entity should take towards a target, as a position and not a direction. It uses `QueueLinkedList` and a `parent` dictionary that is also the visited set. Blinky uses it.
 - `dijkstra()` is the class version: a priority queue (`heapq`) of `(distance, cell)` tuples and a `distances` dictionary. It returns the distance from the start to every cell. Pinky and Inky use it.
 
-**Why two algorithms?** BFS is optimal when every step costs the same, which is true for Blinky. Pinky and Inky avoid the cells of the other ghosts, so their steps have different costs, and BFS would give wrong answers. Dijkstra is needed for that. Without it, all three ghosts followed the same BFS path and queued behind each other. We tried a cost of 5 first, but the ghosts still queued in the corridors, so we raised it to 20.
+**Why two algorithms?** BFS is optimal when every step costs the same, which is true for Blinky. Pinky and Inky avoid the cells of the other ghosts, so their steps have different costs, and BFS would give wrong answers. Dijkstra is needed for that. Without it, all three ghosts followed the same BFS path in a line, and since ghosts can pass through each other, two BFS ghosts on the same cell would move as one from then on. We tried a cost of 5 first, but the ghosts still bunched up in the corridors, so we raised it to 20.
 
 ### 1.4. Game
 
@@ -94,7 +94,7 @@ The `Game` class mixes functional logic and game logic.
     - Blinky takes the next step of the `bfs()` path towards PacMan.
     - Pinky and Inky take the neighbor with the smallest Dijkstra distance (`closest_neighbor()`).
 
-    It calls `occupied()` to avoid overlapping with other ghosts and `check_collision()` to detect a catch, and returns `True` if PacMan died.
+    Ghosts can pass through each other. It calls `check_collision()` to detect a catch, and returns `True` if PacMan died.
 - **`check_collision()`** checks whether a ghost and PacMan are on the same cell. A frightened ghost is eaten (200 points, back to the ghost house); otherwise it calls `lose_life()` and returns `True`.
 - **`frighten()`** runs when PacMan eats a power pellet: every ghost becomes frightened for `FRIGHTENED_TICKS` (40) ticks. **`update_frightened()`** counts down and turns them back to normal.
 - **`lose_life()`** subtracts 1 from the `lives` counter, clears the frightened timer and resets every entity. When PacMan runs out of lives, it stops the timer and displays `"Game Over! Score: X"`.
@@ -107,7 +107,7 @@ The `Game` class mixes functional logic and game logic.
 `Render` is the least relevant class, as it mainly handles displaying the game, which isn't part of the grading criteria. Still, it helps to understand how it works:
 
 - **`draw()`** calls `draw_cell()` for every cell of the grid.
-- **`draw_cell()`** updates a single cell of the `Board`, which is more efficient than redrawing everything. It draws PacMan or a ghost if one is there, otherwise a pellet if the position is in one of the sets, otherwise the maze tile.
+- **`draw_cell()`** updates a single cell of the `Board`, which is more efficient than redrawing everything. It draws PacMan (facing his direction) or a ghost if one is there, otherwise a pellet if the position is in one of the sets, otherwise the maze tile.
 
 Images are stored in the **img** folder next to the script you run. The dictionary `IMAGES` maps each grid symbol or entity to its image.
 
