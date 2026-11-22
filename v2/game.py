@@ -6,14 +6,13 @@ import random
 
 
 class Game():
-    def __init__(self, maze, render, auto = False):
+    def __init__(self, maze, render):
         self.maze = maze
         self.render = render
         self.pacman = maze.pacman
         self.ghosts = maze.ghosts
         self.score = 0
         self.ticks = 0
-        self.auto = auto
 
         render.board.on_key_press = self.on_key
         render.board.on_timer = self.tick
@@ -68,42 +67,16 @@ class Game():
     
     def pacman_move(self):
         p = self.pacman
-        if self.auto == False:
-            if p.next_direction and self.can_move(p.next_direction):
-                p.direction = p.next_direction
-            if p.direction and self.can_move(p.direction):
-                old = p.pos
-                p.pos = self.next_pos(old, p.direction)
-                self.eat()
-                for ghost in self.ghosts:
-                    self.check_collision(ghost)
-                self.render.draw_cell(old)
-                self.render.draw_cell(p.pos)
-        elif self.auto == True:
-            graph = self.maze.build_weighted_graph()
-
+        if p.next_direction and self.can_move(p.next_direction):
+            p.direction = p.next_direction
+        if p.direction and self.can_move(p.direction):
             old = p.pos
-            options = graph[old]          
-
-            safe = []
-            for neighbor, weight in options:
-                if weight >= 3:
-                    safe.append(neighbor)
-            if safe:
-                new = random.choice(safe)
-            else:
-                new, best_weight = options[0]
-                for neighbor, weight in options:
-                    if weight > best_weight:
-                        new, best_weight = neighbor, weight
-
-            p.pos = new
+            p.pos = self.next_pos(old, p.direction)
             self.eat()
             for ghost in self.ghosts:
                 self.check_collision(ghost)
             self.render.draw_cell(old)
-            self.render.draw_cell(p.pos)            
-                       
+            self.render.draw_cell(p.pos)
 
     def ghost_move(self, ghost):
         gp = ghost.pos
@@ -144,4 +117,4 @@ class Game():
 if __name__ == "__main__":
     from render import Render
     maze = Maze(MAZE)
-    Game(maze, Render(maze), auto = False).run()
+    Game(maze, Render(maze)).run()

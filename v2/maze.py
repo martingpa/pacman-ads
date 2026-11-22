@@ -1,6 +1,5 @@
 from constants import MAZE, GHOSTS
 from entities import PacMan, Ghost
-from pathfinding import bfs, bfs_distance
 
 class Maze():
     def __init__(self, maze):
@@ -54,27 +53,5 @@ class Maze():
 
         for key in graph:
             graph[key].extend(self.neighbors(key, ghost))
-
-        return graph
-    
-    def build_weighted_graph(self):
-        graph = {}
-
-        blocked = "#-"
-
-        for i in range(self.rows):
-            for j in range(self.cols):
-                if self.grid[i][j] not in blocked:
-                    graph[(i,j)] = []
-
-        for key in graph:
-            for neighbor in self.neighbors(key, False):
-                distances = []
-                for ghost in self.ghosts:
-                    distances.append(bfs_distance(self.pacman_graph, neighbor, ghost.pos))
-
-                min_distance = min(distances)
-
-                graph[key].append((neighbor, min_distance)) #((a,b), min_distance from ghosts)
 
         return graph
