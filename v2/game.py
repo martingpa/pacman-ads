@@ -184,6 +184,5 @@ class Game():
         self.render.show()
 
 if __name__ == "__main__":
-    from render import Render
     maze = Maze(MAZE)
     Game(maze, Render(maze)).run()

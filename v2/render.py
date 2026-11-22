@@ -25,7 +25,7 @@ class Render():
             return
         for ghost in self.maze.ghosts:
             if ghost.pos == pos:
-                self.board[r][c] = ghost.image
+                self.board[r][c] = ghost.image()
                 return
         if pos in self.maze.pellets:
             self.board[r][c] = "pellet"

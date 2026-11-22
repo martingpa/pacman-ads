@@ -1,4 +1,4 @@
-from constants import MAZE, GHOSTS, GHOST_COST
+from constants import GHOSTS, GHOST_COST
 from entities import PacMan, Ghost
 
 class Maze():
@@ -34,7 +34,10 @@ class Maze():
 
     def neighbors(self, pos, ghost):
 
-        blocked = "#" if ghost else "#-"
+        if ghost:
+            blocked = "#"           # ghosts can go through the door
+        else:
+            blocked = "#-"          # Pac-Man can't
 
         result = []
         directions = [(1,0), (-1, 0), (0, 1), (0, -1)]
@@ -50,18 +53,25 @@ class Maze():
 
 
     def build_graph(self, ghost):
+        # create the graph dictionary (adjacency list)
         graph = {}
 
-        blocked = "#" if ghost else "#-"
+        if ghost:
+            blocked = "#"
+        else:
+            blocked = "#-"
 
+        # add every cell we can walk on as a key with an empty list
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.grid[i][j] not in blocked:
                     graph[(i,j)] = []
 
+        # fill each list with the cell's walkable neighbors
         for key in graph:
             graph[key].extend(self.neighbors(key, ghost))
 
+        # return the graph
         return graph
 
     def build_weighted_graph(self):

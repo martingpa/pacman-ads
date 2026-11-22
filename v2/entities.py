@@ -28,7 +28,9 @@ class Ghost(Entity):
         self.prev = None
         self.frightened = False
 
-    @property
     def image(self):
-        return "frightened" if self.frightened else self.name
+        if self.frightened:
+            return "frightened"
+        else:
+            return self.name
     
