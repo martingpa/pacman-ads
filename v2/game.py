@@ -74,6 +74,8 @@ class Game():
             return False
         if ghost.frightened:
             ghost.reset()               # back to the ghost house
+            ghost.frightened = False    # as a normal ghost
+            ghost.prev = None
             self.score += 200
             self.render.draw_cell(ghost.pos)
             self.update_title()
@@ -93,9 +95,13 @@ class Game():
         # start a new life: everyone back to their start cells
         self.ticks = 0
         self.frightened_ticks = 0
-        self.pacman.reset()             # also clears direction and next_direction
+        self.pacman.reset()
+        self.pacman.direction = None
+        self.pacman.next_direction = None
         for ghost in self.ghosts:
-            ghost.reset()               # also clears frightened
+            ghost.reset()
+            ghost.frightened = False
+            ghost.prev = None
         self.render.draw()
         self.update_title()
     
