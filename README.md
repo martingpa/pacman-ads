@@ -32,7 +32,7 @@ Each is represented by its own class, `PacMan` and `Ghost`, and both inherit fro
 
 ### 1.2. Maze
 
-`Maze` is the core class in terms of algorithms and data structures. It has four main methods and several important attributes:
+`Maze` is the core class in terms of algorithms and data structures. It has six main methods and several important attributes:
 
 **Attributes**
 
@@ -42,6 +42,12 @@ Each is represented by its own class, `PacMan` and `Ghost`, and both inherit fro
 - `pellets_left` counts the pellets and power pellets still in the grid.
 
 **Methods**
+
+- **`is_solvable()`** runs first, before anything else is set up. It finds PacMan's start (`P`) in the grid, calls `dfs()` from there to visit every cell PacMan can reach, and then checks that every pellet (`.`) and power pellet (`o`) was visited. The result is stored in `valid`. Only if the maze is valid does `__init__` go on to run `parse()` and the two `build_graph()` calls. If it isn't, **game.py** prints a message instead of starting the game.
+
+- **`dfs()`** is a recursive *depth-first search*: it adds the cell to the `visited` set, then calls itself on each neighbor that hasn't been visited yet. It walks the grid directly with `neighbors()`, because the graphs aren't built yet at this point.
+
+    > **Why DFS here and BFS for the ghosts?** The check only needs to know *whether* a pellet can be reached, not the shortest way there, so the order of the search doesn't matter and the recursive version is the shortest code. The ghosts need the shortest path, which is what BFS gives.
 
 - **`parse()`** loops through the `MAZE` defined in constants and:
     - finds each ghost, creates a `Ghost` object with its name and position, and appends it to `ghosts`. The `G` symbol is replaced with an empty space `" "`. Names are assigned in the order the ghosts are found, taken from `GHOSTS` in **constants.py**.
@@ -114,6 +120,7 @@ Images are stored in the **img** folder next to the script you run. The dictiona
 - **Dictionaries** (hash tables) for the adjacency lists `pacman_graph` and `ghost_graph` and the BFS `parent` map.
 - **Queue** (`deque`) for BFS: adding at the back and taking from the front are both O(1).
 - **Counter** `pellets_left` for the win condition.
+- **Set** `visited` for the DFS maze check: checking and adding a cell is O(1).
 
 ### 1.7. What we abandoned
 
