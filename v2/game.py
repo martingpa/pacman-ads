@@ -1,7 +1,7 @@
 from constants import MAZE, DIRS, TICK_MS, FRIGHTENED_TICKS
 from maze import Maze
 from render import Render
-from pathfinding import bfs, dijkstra
+from pathfinding import bfs
 import random
 
 
@@ -60,6 +60,12 @@ class Game():
                     ghost.frightened = False
                     self.render.draw_cell(ghost.pos)
     
+    def occupied(self, pos):
+        for ghost in self.ghosts:
+            if ghost.pos == pos:
+                return True
+        return False
+
     def check_collision(self, ghost):
         # returns True if Pac-Man died
         if ghost.pos != self.pacman.pos:
@@ -107,31 +113,23 @@ class Game():
                     return True
         return False
 
-    def ghost_move(self, ghost, distances):
+    def ghost_move(self, ghost):
         # returns True if Pac-Man died
         old = ghost.pos
         if ghost.frightened:
             # frightened: a random neighbor
             new = self.random_step(ghost)
-        elif ghost.name == "blinky":
-            # Blinky: shortest path to Pac-Man with BFS (every step costs the same)
-            new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
         else:
-            # Pinky and Inky: step to the neighbor with the smallest Dijkstra distance to Pac-Man
-            new = self.closest_neighbor(old, distances)
+            # chase: the next step on the shortest path to Pac-Man (BFS)
+            new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
+        # another ghost is in the way: wait this tick
+        if self.occupied(new):
+            return False
         ghost.prev = old
         ghost.pos = new
         self.render.draw_cell(old)
         self.render.draw_cell(new)
         return self.check_collision(ghost)
-
-    def closest_neighbor(self, pos, distances):
-        neighbors = self.maze.ghost_graph[pos]
-        best = neighbors[0]
-        for neighbor in neighbors:
-            if distances[neighbor] < distances[best]:
-                best = neighbor
-        return best
 
     def random_step(self, ghost):
         # random neighbor, but not straight back if there is another way
@@ -172,10 +170,8 @@ class Game():
             else:
                 released = []
 
-            # one Dijkstra run from Pac-Man per tick, shared by Pinky and Inky
-            distances = dijkstra(self.maze.build_weighted_graph(), self.pacman.pos)
             for ghost in released:
-                if self.ghost_move(ghost, distances):
+                if self.ghost_move(ghost):
                     return      # Pac-Man died: stop so the others don't move off their reset positions
 
 
