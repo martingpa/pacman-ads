@@ -2,7 +2,7 @@
 
 ## 1. Object-Oriented Structure
 
-The program is structured in 6 classes and one function, distributed across 5 files:
+The program is structured in 6 classes and one function, distributed across 5 files in the **src** folder:
 
 - `Entity` in **entities.py**
     - `PacMan` (inherits from `Entity`) in **entities.py**
@@ -12,7 +12,7 @@ The program is structured in 6 classes and one function, distributed across 5 fi
 - `Render` in **render.py**
 - the function `bfs()` in **pathfinding.py**
 
-An additional **constants.py** file also exists. All of these files are in the **src** folder, together with the **img** folder.
+An additional **constants.py** file also exists.
 
 ### 1.1. Entities
 
@@ -27,112 +27,70 @@ Each is represented by its own class, `PacMan` and `Ghost`, and both inherit fro
 
     > **Note:** The direction buffer lets the game check that a direction is valid before the entity actually takes it.
 
-    - `Ghost` adds three attributes: its identifier `name`, its state `frightened` and its previous cell `prev` (so a frightened ghost doesn't turn straight back). `image()` returns `"frightened"` or the ghost's name.
-    - `PacMan` adds a `lives` counter. `image()` returns the sprite facing his current direction (`pacman_up`, `pacman_left`, ...), or `pacman` before he starts moving.
+    - `Ghost` adds its identifier `name`, its state `frightened` and its previous cell `prev`, so a frightened ghost doesn't turn straight back.
+    - `PacMan` adds a `lives` counter.
+    - Both have an `image()` method that returns the image to draw.
 
 ### 1.2. Maze
 
-`Maze` is the core class in terms of algorithms and data structures. It has six main methods and several important attributes:
+`Maze` is the core class in terms of algorithms and data structures.
 
 **Attributes**
 
 - `grid` stores the maze (initially defined as an array of strings) as a matrix.
 - `pacman_graph` maps each traversable cell to the adjacent cells PacMan can move to.
 - `ghost_graph` is the same, except that ghosts can also traverse `-`, which is why a separate graph is needed.
-- `pellets_left` counts the pellets and power pellets still in the grid.
+- `pellets_left` counts the pellets still in the grid.
 
 **Methods**
 
-- **`is_solvable()`** runs first, before anything else is set up. It finds PacMan's start (`P`) in the grid, calls `dfs()` from there to visit every cell PacMan can reach, and then checks that every pellet (`.`) and power pellet (`o`) was visited. The result is stored in `valid`. Only if the maze is valid does `__init__` go on to run `parse()` and the two `build_graph()` calls. If it isn't, **game.py** prints a message instead of starting the game.
-
-- **`dfs()`** is a recursive *depth-first search*: it adds the cell to the `visited` set, then calls itself on each neighbor that hasn't been visited yet. It walks the grid directly with `neighbors()`, because the graphs aren't built yet at this point.
-
-    > **Why DFS here and BFS for the ghosts?** The check only needs to know *whether* a pellet can be reached, not the shortest way there, so the order of the search doesn't matter and the recursive version is the shortest code. The ghosts need the shortest path, which is what BFS gives.
-
+- **`is_solvable()`** runs first. It finds PacMan in the grid and uses `dfs()` to visit every cell he can reach. If a pellet wasn't visited the maze is not valid, and `parse()` and `build_graph()` are not run.
+- **`dfs()`** is a recursive depth-first search over the grid.
 - **`parse()`** loops through the `MAZE` defined in constants and:
-    - finds each ghost, creates a `Ghost` object with its name and position, and appends it to `ghosts`. The `G` symbol is replaced with an empty space `" "`. Names are assigned in the order the ghosts are found, taken from `GHOSTS` in **constants.py**.
+    - finds each ghost, creates a `Ghost` object with its name and position, and appends it to `ghosts`. The `G` symbol is replaced with an empty space `" "`.
     - finds PacMan, creates a `PacMan` object with its position, and replaces `P` with `" "`.
-    - counts every `.` and `o` in `pellets_left`. The pellets stay in the grid.
-
-    > **Note:** Entities are replaced with whitespace because the grid should not contain them. Pellets stay, because they are part of the maze until PacMan eats them.
-
-- **`neighbors()`** takes a position in the grid and checks which adjacent positions an entity can traverse. It is a helper for `build_graph()`.
-    - Ghosts can traverse everything except `#`.
-    - PacMan can traverse everything except `#` and `-`.
-
-- **`build_graph()`** builds the adjacency map `graph` from the grid in three steps:
-    1. Map each traversable cell of the `grid` to an empty list (what is traversable depends on whether the graph is for ghosts, which is passed as a boolean).
-    2. For each key (a position tuple), extend its list with the key's neighbors.
-    3. Return the graph.
-
+    - counts the pellets.
+- **`neighbors()`** takes a position in the grid and checks which adjacent positions an entity can traverse. Ghosts can traverse everything except `#`, PacMan everything except `#` and `-`.
+- **`build_graph()`** builds the adjacency map from the grid: each traversable cell is a key, and its value is the list of its neighbors.
 
 ### 1.3. Pathfinding
 
-**pathfinding.py** has one function:
-
-- `bfs()` (*breadth-first search*) returns the first step an entity should take towards a target, as a position and not a direction. It uses a `deque` as the queue and a `parent` dictionary that is also the visited set. At the end it starts at the target and keeps moving to the parent until the parent is the origin; that cell is the first step. Every ghost uses it to chase PacMan.
-
-**Why BFS?** Every step in the maze costs the same, so BFS (which explores level by level) always finds the shortest path.
+`bfs()` returns the first step an entity should take towards a target, as a position and not a direction. It uses a `deque` as the queue and a `parent` dictionary that is also the visited set. The ghosts use it to follow PacMan.
 
 ### 1.4. Game
 
-The `Game` class mixes functional logic and game logic.
-
 **Functional Logic**
 
-- **`on_key()`** handles key presses registered by `game2dboard`. If the key is a valid direction (a key of the `DIRS` dictionary), it sets the `next_direction` of the `PacMan` object to it.
-- **`tick()`** runs each time the `game2dboard` timer fires, every `TICK_MS` milliseconds (set in **constants.py**).
+- **`on_key()`** handles key presses. If the key is a valid direction, it sets the `next_direction` of PacMan.
+- **`tick()`** runs every `TICK_MS` milliseconds: it moves PacMan, checks the win, counts down the power pellet and, every second tick, moves the ghosts. The ghosts leave the house one by one (after tick 2, 20 and 40).
 
 **Game Logic**
 
-- **`tick()`** runs in this order:
-    1. Move PacMan. If he walked into a ghost, stop here.
-    2. If `pellets_left` is 0, stop the timer and display `"You win! Score: X"`.
-    3. Count down the power pellet with `update_frightened()`.
-    4. Every second tick, move the released ghosts. The middle ghost (Blinky) sits right below the door, so he is released first (after tick 2), then Pinky (after tick 20), then Inky (after tick 40). If a ghost catches PacMan, the tick stops so the other ghosts don't move off their reset positions.
-- **`pacman_move()`** first checks that `next_direction` is set (which only happens once the user starts playing) and that the direction is valid. If both hold, that direction becomes the current direction; otherwise the direction is left unchanged. A second block then updates PacMan's position and the eaten pellets, renders the new positions, and checks for collisions. It returns `True` if PacMan died.
-- **`ghost_move()`** moves a ghost one step:
-    - Frightened ghosts take a random neighbor (`random_step()`), but not straight back to `prev` if there is another way.
-    - Otherwise the ghost takes the next step of the `bfs()` path towards PacMan.
-
-    If another ghost is on that next cell (`occupied()`), the ghost waits this tick. It calls `check_collision()` to detect a catch, and returns `True` if PacMan died.
-- **`check_collision()`** checks whether a ghost and PacMan are on the same cell. A frightened ghost is eaten (200 points, back to the ghost house); otherwise it calls `lose_life()` and returns `True`.
-- **`frighten()`** runs when PacMan eats a power pellet: every ghost becomes frightened for `FRIGHTENED_TICKS` (40) ticks. **`update_frightened()`** counts down and turns them back to normal.
-- **`lose_life()`** subtracts 1 from the `lives` counter. If it reaches 0, it stops the timer and displays `"Game Over! Score: X"` without starting a new life. Otherwise it clears the frightened timer, resets every entity (positions, PacMan's directions, the ghosts' `frightened` and `prev`) and updates the title.
-- **`update_title()`** shows the score and lives in the window title. It runs at the start, after every move and after every death, so the lives counter is always current.
-- **`next_pos()`** takes a position and a direction and returns the position one cell further in that direction, wrapping around at the tunnels.
-- **`can_move()`** checks whether the next position in a given direction is among the traversable neighbors of PacMan's current position in `pacman_graph`.
-- **`eat()`** checks whether PacMan's new position holds a pellet (`.`) or a power pellet (`o`) in the grid. If so, it removes it from the grid, subtracts 1 from `pellets_left` and adds its points to the score (10 or 50). A power pellet also calls `frighten()`.
-- **`occupied()`** returns `True` if a ghost is on the given cell, so ghosts don't overlap.
+- **`pacman_move()`** changes direction if `next_direction` is valid, moves PacMan, eats and checks for collisions.
+- **`ghost_move()`** moves a ghost one step towards PacMan with `bfs()`, or to a random neighbor if it is frightened. If another ghost is in the way (`occupied()`) it waits.
+- **`eat()`** adds 10 points for a pellet and 50 for a power pellet, which also calls `frighten()`.
+- **`frighten()`** makes the ghosts frightened for 40 ticks. A frightened ghost can be eaten for 200 points.
+- **`check_collision()`** checks whether a ghost and PacMan are on the same cell, in which case it calls `lose_life()`.
+- **`lose_life()`** subtracts 1 from the `lives` counter and resets the entities. When PacMan runs out of lives, it stops the timer and displays `"Game Over!"`.
+- **`next_pos()`** and **`can_move()`** work out the next cell in a direction (wrapping around at the tunnels) and whether PacMan can go there.
 
 ### 1.5. Render
 
-`Render` is the least relevant class, as it mainly handles displaying the game, which isn't part of the grading criteria. Still, it helps to understand how it works:
-
-- **`draw()`** calls `draw_cell()` for every cell of the grid.
-- **`draw_cell()`** updates a single cell of the `Board`, which is more efficient than redrawing everything. It draws PacMan (facing his direction) or a ghost if one is there, otherwise the maze tile (wall, door, pellet, power pellet or empty).
-
-Images are stored in the **img** folder next to the script you run. The dictionary `IMAGES` maps each grid symbol or entity to its image.
+`Render` handles displaying the game. `draw()` draws the whole board and `draw_cell()` updates a single cell, which is faster than redrawing everything. Images are stored in the **img** folder.
 
 ### 1.6. Data structures
 
-- **2D array** (list of lists) for the maze `grid`.
-- **Dictionaries** (hash tables) for the adjacency lists `pacman_graph` and `ghost_graph` and the BFS `parent` map.
-- **Queue** (`deque`) for BFS: adding at the back and taking from the front are both O(1).
-- **Counter** `pellets_left` for the win condition.
-- **Set** `visited` for the DFS maze check: checking and adding a cell is O(1).
+- 2D array (list of lists) for the grid
+- dictionaries for the graphs and the BFS parents
+- `deque` as the BFS queue
+- set for the cells visited by DFS
+- counter for the pellets left
 
 ### 1.7. What we abandoned
 
-An autoplayer. It needed a BFS for every neighbor of every cell, per ghost, every tick (about 1,242 searches per tick), and it was a random walk that couldn't win. It didn't add anything to the game, so we removed it together with `bfs_distance()`.
+An autoplayer. It ran a BFS for every neighbor of every cell every tick, so it was slow, and it couldn't win. We also tried Dijkstra and our own queue and heap, but went back to BFS and `deque` to keep it simple.
 
-## 2. Imports
-
-- **External:** `game2dboard` (version 0.8), used in **render.py** for the board and window.
-- **Standard library:** `collections.deque` (the BFS queue in **pathfinding.py**) and `random` (frightened ghosts in **game.py**).
-- **Project files:** each file imports what it needs from the others, e.g. **game.py** imports `Maze`, `Render` and `bfs`.
-
-## 3. Running the Code
+## 2. Running the Code
 
 This requires Python 3.10 or newer. With [uv](https://docs.astral.sh/uv/), from the repository root, run:
 
@@ -140,11 +98,11 @@ This requires Python 3.10 or newer. With [uv](https://docs.astral.sh/uv/), from 
 uv run python src/game.py
 ```
 
-Dependencies are installed automatically on the first run. Without uv, install the library and just run the file:
+Or install the library and run the file:
 
 ```
 pip install game2dboard==0.8
 python src/game.py
 ```
 
-Control PacMan with the arrow keys. Eat every pellet to win; a power pellet lets you eat the ghosts for a few seconds.
+Control PacMan with the arrow keys.
