@@ -12,7 +12,7 @@ The program is structured in 6 classes and one function, distributed across 5 fi
 - `Render` in **render.py**
 - the function `bfs()` in **pathfinding.py**
 
-An additional **constants.py** file also exists.
+An additional **constants.py** file also exists. All of these files are in the **src** folder, together with the **img** folder.
 
 ### 1.1. Entities
 
@@ -137,14 +137,14 @@ An autoplayer. It needed a BFS for every neighbor of every cell, per ghost, ever
 This requires Python 3.10 or newer. With [uv](https://docs.astral.sh/uv/), from the repository root, run:
 
 ```
-uv run python v2/game.py
+uv run python src/game.py
 ```
 
 Dependencies are installed automatically on the first run. Without uv, install the library and just run the file:
 
 ```
 pip install game2dboard==0.8
-python v2/game.py
+python src/game.py
 ```
 
 Control PacMan with the arrow keys. Eat every pellet to win; a power pellet lets you eat the ghosts for a few seconds.
