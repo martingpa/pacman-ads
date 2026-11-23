@@ -191,4 +191,7 @@ class Game():
 
 if __name__ == "__main__":
     maze = Maze(MAZE)
-    Game(maze, Render(maze)).run()
+    if maze.valid:
+        Game(maze, Render(maze)).run()
+    else:
+        print("The maze is not solvable: Pac-Man can't reach every pellet.")
