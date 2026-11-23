@@ -1,4 +1,4 @@
-from constants import GHOSTS, GHOST_COST
+from constants import GHOSTS
 from entities import PacMan, Ghost
 
 class Maze():
@@ -8,12 +8,43 @@ class Maze():
         self.cols = len(self.grid[0])
         self.ghosts = []
         self.pacman = None
-        self.pellets = set()          # positions of the "." pellets
-        self.power_pellets = set()    # positions of the "o" power pellets
+        self.pellets_left = 0         # pellets and power pellets still in the grid
 
-        self.parse()
-        self.pacman_graph = self.build_graph(False)
-        self.ghost_graph = self.build_graph(True)
+        # check with DFS that Pac-Man can reach every pellet before setting up the game
+        self.valid = self.is_solvable()
+        if self.valid:
+            self.parse()
+            self.pacman_graph = self.build_graph(False)
+            self.ghost_graph = self.build_graph(True)
+
+    def is_solvable(self):
+        # find Pac-Man's start
+        start = None
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.grid[i][j] == "P":
+                    start = (i, j)
+        if start is None:
+            return False
+
+        # visit every cell Pac-Man can reach
+        visited = set()
+        self.dfs(start, visited)
+
+        # every pellet and power pellet must have been visited
+        for i in range(self.rows):
+            for j in range(self.cols):
+                if self.grid[i][j] == "." or self.grid[i][j] == "o":
+                    if (i, j) not in visited:
+                        return False
+        return True
+
+    def dfs(self, pos, visited):
+        # depth-first search (recursion): visit pos, then each neighbor we haven't visited yet
+        visited.add(pos)
+        for neighbor in self.neighbors(pos, False):
+            if neighbor not in visited:
+                self.dfs(neighbor, visited)
 
     def parse(self):
         for i in range(self.rows):
@@ -25,12 +56,8 @@ class Maze():
                 elif self.grid[i][j] == "P":
                     self.grid[i][j] = " "
                     self.pacman = PacMan((i, j))
-                elif self.grid[i][j] == ".":
-                    self.grid[i][j] = " "
-                    self.pellets.add((i, j))
-                elif self.grid[i][j] == "o":
-                    self.grid[i][j] = " "
-                    self.power_pellets.add((i, j))
+                elif self.grid[i][j] == "." or self.grid[i][j] == "o":
+                    self.pellets_left += 1      # pellets stay in the grid, we only count them
 
     def neighbors(self, pos, ghost):
 
@@ -72,23 +99,4 @@ class Maze():
             graph[key].extend(self.neighbors(key, ghost))
 
         # return the graph
-        return graph
-
-    def build_weighted_graph(self):
-        graph = {}
-
-        # cells with a ghost on them cost more, so Dijkstra goes around the other ghosts
-        ghost_cells = set()
-        for ghost in self.ghosts:
-            ghost_cells.add(ghost.pos)
-
-        for key in self.ghost_graph:
-            graph[key] = []
-            for neighbor in self.ghost_graph[key]:
-                if neighbor in ghost_cells:
-                    cost = GHOST_COST
-                else:
-                    cost = 1
-                graph[key].append((neighbor, cost))     #(neighbor, cost of stepping onto it)
-
         return graph

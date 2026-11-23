@@ -2,7 +2,7 @@ from game2dboard import Board
 
 
 class Render():
-    IMAGES = {"#": "wall", "-": "door"}
+    IMAGES = {"#": "wall", ".": "pellet", "o": "power", "-": "door"}
 
     def __init__(self, maze):
         self.maze = maze
@@ -27,12 +27,7 @@ class Render():
             if ghost.pos == pos:
                 self.board[r][c] = ghost.image()
                 return
-        if pos in self.maze.pellets:
-            self.board[r][c] = "pellet"
-        elif pos in self.maze.power_pellets:
-            self.board[r][c] = "power"
-        else:
-            self.board[r][c] = self.IMAGES.get(self.maze.grid[r][c])
+        self.board[r][c] = self.IMAGES.get(self.maze.grid[r][c])
 
     def set_title(self, text):
         self.board.title = text

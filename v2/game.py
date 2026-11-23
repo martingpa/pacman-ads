@@ -1,7 +1,7 @@
 from constants import MAZE, DIRS, TICK_MS, FRIGHTENED_TICKS
 from maze import Maze
 from render import Render
-from pathfinding import bfs, dijkstra
+from pathfinding import bfs
 import random
 
 
@@ -32,13 +32,15 @@ class Game():
     
         
     def eat(self):
-        pos = self.pacman.pos
-        if pos in self.maze.pellets:
+        r, c = self.pacman.pos
+        if self.maze.grid[r][c] == ".":
             self.score += 10
-            self.maze.pellets.remove(pos)
-        elif pos in self.maze.power_pellets:
+            self.maze.grid[r][c] = " "
+            self.maze.pellets_left -= 1
+        elif self.maze.grid[r][c] == "o":
             self.score += 50
-            self.maze.power_pellets.remove(pos)
+            self.maze.grid[r][c] = " "
+            self.maze.pellets_left -= 1
             self.frighten()
         self.update_title()
 
@@ -60,12 +62,20 @@ class Game():
                     ghost.frightened = False
                     self.render.draw_cell(ghost.pos)
     
+    def occupied(self, pos):
+        for ghost in self.ghosts:
+            if ghost.pos == pos:
+                return True
+        return False
+
     def check_collision(self, ghost):
         # returns True if Pac-Man died
         if ghost.pos != self.pacman.pos:
             return False
         if ghost.frightened:
             ghost.reset()               # back to the ghost house
+            ghost.frightened = False    # as a normal ghost
+            ghost.prev = None
             self.score += 200
             self.render.draw_cell(ghost.pos)
             self.update_title()
@@ -85,9 +95,13 @@ class Game():
         # start a new life: everyone back to their start cells
         self.ticks = 0
         self.frightened_ticks = 0
-        self.pacman.reset()             # also clears direction and next_direction
+        self.pacman.reset()
+        self.pacman.direction = None
+        self.pacman.next_direction = None
         for ghost in self.ghosts:
-            ghost.reset()               # also clears frightened
+            ghost.reset()
+            ghost.frightened = False
+            ghost.prev = None
         self.render.draw()
         self.update_title()
     
@@ -107,31 +121,23 @@ class Game():
                     return True
         return False
 
-    def ghost_move(self, ghost, distances):
+    def ghost_move(self, ghost):
         # returns True if Pac-Man died
         old = ghost.pos
         if ghost.frightened:
             # frightened: a random neighbor
             new = self.random_step(ghost)
-        elif ghost.name == "blinky":
-            # Blinky: shortest path to Pac-Man with BFS (every step costs the same)
-            new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
         else:
-            # Pinky and Inky: step to the neighbor with the smallest Dijkstra distance to Pac-Man
-            new = self.closest_neighbor(old, distances)
+            # chase: the next step on the shortest path to Pac-Man (BFS)
+            new = bfs(self.maze.ghost_graph, old, self.pacman.pos)
+        # another ghost is in the way: wait this tick
+        if self.occupied(new):
+            return False
         ghost.prev = old
         ghost.pos = new
         self.render.draw_cell(old)
         self.render.draw_cell(new)
         return self.check_collision(ghost)
-
-    def closest_neighbor(self, pos, distances):
-        neighbors = self.maze.ghost_graph[pos]
-        best = neighbors[0]
-        for neighbor in neighbors:
-            if distances[neighbor] < distances[best]:
-                best = neighbor
-        return best
 
     def random_step(self, ghost):
         # random neighbor, but not straight back if there is another way
@@ -152,7 +158,7 @@ class Game():
             return
 
         # 2. Win when every pellet is eaten
-        if len(self.maze.pellets) == 0 and len(self.maze.power_pellets) == 0:
+        if self.maze.pellets_left == 0:
             self.render.board.stop_timer()
             self.render.set_title(f"You win! Score: {self.score}")
             return
@@ -172,10 +178,8 @@ class Game():
             else:
                 released = []
 
-            # one Dijkstra run from Pac-Man per tick, shared by Pinky and Inky
-            distances = dijkstra(self.maze.build_weighted_graph(), self.pacman.pos)
             for ghost in released:
-                if self.ghost_move(ghost, distances):
+                if self.ghost_move(ghost):
                     return      # Pac-Man died: stop so the others don't move off their reset positions
 
 
@@ -187,4 +191,7 @@ class Game():
 
 if __name__ == "__main__":
     maze = Maze(MAZE)
-    Game(maze, Render(maze)).run()
+    if maze.valid:
+        Game(maze, Render(maze)).run()
+    else:
+        print("The maze is not solvable: Pac-Man can't reach every pellet.")
