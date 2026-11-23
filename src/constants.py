@@ -22,8 +22,8 @@ MAZE = [
     "###################",
 ]
 
-GHOSTS = ["pinky", "blinky", "inky"]    # names in the order parse() finds the G cells, so Blinky is the middle one
+GHOSTS = ["pinky", "blinky", "inky"]
 DIRS = {"Up": (-1, 0), "Down": (1, 0), "Left": (0, -1), "Right": (0, 1)}
 TICK_MS = 200
-FRIGHTENED_TICKS = 40   # how long a power pellet lasts
+FRIGHTENED_TICKS = 40
 

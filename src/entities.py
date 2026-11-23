@@ -1,4 +1,4 @@
-class Entity(): 
+class Entity():
     def __init__(self, pos):
         self.pos = pos
         self.start = pos
@@ -6,7 +6,7 @@ class Entity():
         self.next_direction = None
 
     def reset(self):
-        self.pos = self.start 
+        self.pos = self.start
 
 class PacMan(Entity):
     def __init__(self, pos):
@@ -14,7 +14,6 @@ class PacMan(Entity):
         self.lives = 3
 
     def image(self):
-        # face the way Pac-Man is moving (pacman_up.png, pacman_left.png, ...)
         if self.direction is None:
             return "pacman"
         else:
@@ -24,9 +23,9 @@ class PacMan(Entity):
 class Ghost(Entity):
     def __init__(self, pos, name):
         super().__init__(pos)
-        self.name = name 
+        self.name = name
         self.frightened = False
-        self.prev = None        # previous cell, so a frightened ghost doesn't turn straight back
+        self.prev = None
 
     def image(self):
         if self.frightened:

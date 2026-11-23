@@ -8,9 +8,8 @@ class Maze():
         self.cols = len(self.grid[0])
         self.ghosts = []
         self.pacman = None
-        self.pellets_left = 0         # pellets and power pellets still in the grid
+        self.pellets_left = 0
 
-        # check with DFS that Pac-Man can reach every pellet before setting up the game
         self.valid = self.is_solvable()
         if self.valid:
             self.parse()
@@ -18,7 +17,6 @@ class Maze():
             self.ghost_graph = self.build_graph(True)
 
     def is_solvable(self):
-        # find Pac-Man's start
         start = None
         for i in range(self.rows):
             for j in range(self.cols):
@@ -27,11 +25,9 @@ class Maze():
         if start is None:
             return False
 
-        # visit every cell Pac-Man can reach
         visited = set()
         self.dfs(start, visited)
 
-        # every pellet and power pellet must have been visited
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.grid[i][j] == "." or self.grid[i][j] == "o":
@@ -40,7 +36,6 @@ class Maze():
         return True
 
     def dfs(self, pos, visited):
-        # depth-first search (recursion): visit pos, then each neighbor we haven't visited yet
         visited.add(pos)
         for neighbor in self.neighbors(pos, False):
             if neighbor not in visited:
@@ -57,14 +52,14 @@ class Maze():
                     self.grid[i][j] = " "
                     self.pacman = PacMan((i, j))
                 elif self.grid[i][j] == "." or self.grid[i][j] == "o":
-                    self.pellets_left += 1      # pellets stay in the grid, we only count them
+                    self.pellets_left += 1
 
     def neighbors(self, pos, ghost):
 
         if ghost:
-            blocked = "#"           # ghosts can go through the door
+            blocked = "#"
         else:
-            blocked = "#-"          # Pac-Man can't
+            blocked = "#-"
 
         result = []
         directions = [(1,0), (-1, 0), (0, 1), (0, -1)]
@@ -72,7 +67,7 @@ class Maze():
         pr = pos[0]
         pc = pos[1]
 
-        for dr, dc in directions:                           # dr (direction row), dc (direction collumn)
+        for dr, dc in directions:
             if self.grid[pr+dr][(pc+dc) % self.cols] not in blocked:
                 result.append((pr+dr, (pc+dc) % self.cols))
 
@@ -80,7 +75,6 @@ class Maze():
 
 
     def build_graph(self, ghost):
-        # create the graph dictionary (adjacency list)
         graph = {}
 
         if ghost:
@@ -88,15 +82,12 @@ class Maze():
         else:
             blocked = "#-"
 
-        # add every cell we can walk on as a key with an empty list
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.grid[i][j] not in blocked:
                     graph[(i,j)] = []
 
-        # fill each list with the cell's walkable neighbors
         for key in graph:
             graph[key].extend(self.neighbors(key, ghost))
 
-        # return the graph
         return graph

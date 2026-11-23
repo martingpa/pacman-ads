@@ -33,4 +33,4 @@ class Render():
         self.board.title = text
 
     def show(self):
-        self.board.show()       # Blocks until the window closes, so call it last
+        self.board.show()
