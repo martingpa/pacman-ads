@@ -32,13 +32,15 @@ class Game():
     
         
     def eat(self):
-        pos = self.pacman.pos
-        if pos in self.maze.pellets:
+        r, c = self.pacman.pos
+        if self.maze.grid[r][c] == ".":
             self.score += 10
-            self.maze.pellets.remove(pos)
-        elif pos in self.maze.power_pellets:
+            self.maze.grid[r][c] = " "
+            self.maze.pellets_left -= 1
+        elif self.maze.grid[r][c] == "o":
             self.score += 50
-            self.maze.power_pellets.remove(pos)
+            self.maze.grid[r][c] = " "
+            self.maze.pellets_left -= 1
             self.frighten()
         self.update_title()
 
@@ -150,7 +152,7 @@ class Game():
             return
 
         # 2. Win when every pellet is eaten
-        if len(self.maze.pellets) == 0 and len(self.maze.power_pellets) == 0:
+        if self.maze.pellets_left == 0:
             self.render.board.stop_timer()
             self.render.set_title(f"You win! Score: {self.score}")
             return
